@@ -63,8 +63,8 @@ module.exports = (env) ->
             oauth2Client.credentials = JSON.parse(token)
             #env.logger.debug oauth2Client
             resolve oauth2Client
-      );      
-      
+      );
+
 
   plugin = new GoogleCalendar
 
@@ -75,55 +75,48 @@ module.exports = (env) ->
       events:
         description: "Your google calendar events"
         type: "array"
-    
+
     constructor: (@config, @framework) ->
       @id = @config.id
       @name = @config.name
-      @auth = @getAuth()
-      #events = @listEvents(@auth)
-      console.log events
-      #Run listEvents and then push events to frontend
-
-      super()
-    
-    getAuth: ->      
-      plugin.pendingAuth.then( (authInfo) =>
-        env.logger.debug authInfo
-        @auth = authInfo
-        #return authInfo
-      ).catch ((err) ->
-        env.logger.error err
-        #@auth = null
+      @listEvents().then( (events) =>
+        @events = events
+        console.log events
       )
 
-    listEvents: (auth) ->
-      calendar = google.calendar('v3')
-      calendar.events.list {
-        auth: auth
-        calendarId: 'primary'
-        timeMin: (new Date).toISOString()
-        maxResults: 10
-        singleEvents: true
-        orderBy: 'startTime'
-      }, (err, response) ->
-        if err
-          env.logger.error 'The API returned an error: ' + err
-  
-        #events = response.items 
-        return response.items
-        ###
-        if events.length == 0
-          env.logger.debug 'No upcoming events found.'
-        else
-          env.logger.debug 'Upcoming 10 events:'
-          i = 0
-          while i < events.length
-            event = events[i]
-            start = event.start.dateTime or event.start.date
-            env.logger.debug start + " - " + event.summary
-            #console.log event
-            i++
-        ###
+      super()
+
+
+    listEvents: () ->
+      return plugin.pendingAuth.then( (auth) =>
+        calendar = google.calendar('v3')
+        Promise.promisifyAll(calendar.events)
+        return calendar.events.listAsync({
+          auth: auth
+          calendarId: 'primary'
+          timeMin: (new Date).toISOString()
+          maxResults: 10
+          singleEvents: true
+          orderBy: 'startTime'
+        }).then( (response) =>
+          #events = response.items
+          return response.items
+          ###
+          if events.length == 0
+            env.logger.debug 'No upcoming events found.'
+          else
+            env.logger.debug 'Upcoming 10 events:'
+            i = 0
+            while i < events.length
+              event = events[i]
+              start = event.start.dateTime or event.start.date
+              env.logger.debug start + " - " + event.summary
+              #console.log event
+              i++
+          ###
+      ).catch( (err) =>
+        env.logger.error 'The API returned an error: ' + err
+      )
 
     getEvents: (events) -> Promise.resolve(events)
 
