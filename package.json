@@ -1,5 +1,4 @@
-{
-  "name": "pimatic-googlecalendar",
+{ "name": "pimatic-googlecalendar",
   "description": "Interact with your google calendar",
   "author": "Thorsten Reichelt (thost96) <info@thorstenreichelt.de>",
   "main": "googlecalendar",
@@ -18,9 +17,7 @@
   "configSchema": "googlecalendar-config-schema.coffee",
   "dependencies": {
     "googleapis": "2.1.6",
-    "fs": ""
-  },
-  "devDependencies": {
+    "fs": "",
     "readline": ""
   },
   "peerDependencies": {
