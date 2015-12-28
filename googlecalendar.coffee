@@ -13,7 +13,7 @@ module.exports = (env) ->
   # GoogleCalendar class
   class GoogleCalendar extends env.plugins.Plugin
 
-  	init: (app, @framework, @config) =>
+    init: (app, @framework, @config) =>
       clientId     = @config.clientid
       clientSecret = @config.clientsecret
 
@@ -88,7 +88,7 @@ module.exports = (env) ->
     
     getAuth: ->      
       plugin.pendingAuth.then( (authInfo) =>
-  		  env.logger.debug authInfo
+        env.logger.debug authInfo
         @auth = authInfo
         #return authInfo
       ).catch ((err) ->
