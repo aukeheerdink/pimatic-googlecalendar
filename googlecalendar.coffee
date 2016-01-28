@@ -20,10 +20,19 @@ module.exports = (env) ->
       deviceConfigDef = require("./device-config-schema")
       @framework.deviceManager.registerDeviceClass("CalendarListDevice", {
         configDef: deviceConfigDef.CalendarListDevice,
-        createCallback: (config) => new CalendarListDevice(config, @framework)
+        createCallback: (config) => new CalendarListDevice(config)
       })
 
-      env.logger.debug "Plugin"
+      @framework.on "after init", =>
+        # Check if the mobile-frontent was loaded and get a instance
+        mobileFrontend = @framework.pluginManager.getPlugin 'mobile-frontend'
+        if mobileFrontend?
+          mobileFrontend.registerAssetFile 'js', "pimatic-googlecalendar/devices/CalendarListDevice.coffee"
+          mobileFrontend.registerAssetFile 'css', "pimatic-googlecalendar/devices/CalendarListDevice.css"
+          mobileFrontend.registerAssetFile 'html', "pimatic-googlecalendar/devices/CalendarListDevice.html"
+        else
+          env.logger.warn "pimatic-googlecalendar could not find the mobile-frontend. No gui will be available"
+    
 
       @pendingAuth = new Promise ( (resolve, reject) =>
         redirectUrl = "urn:ietf:wg:oauth:2.0:oob"
@@ -50,8 +59,8 @@ module.exports = (env) ->
                 err = 'Error while trying to retrieve access token ' + err
                 reject err
               else
-                console.log "token" + token
-                oauth2Client.credentials = token
+                console.log "token: " + token
+                o auth2Client.credentials = token
                 fs.writeFile __dirname + '/json/tokens.json', JSON.stringify(token), (er) ->
                   if er 
                     reject er
@@ -75,57 +84,52 @@ module.exports = (env) ->
       events:
         description: "Your google calendar events"
         type: "array"
+
+    template: 'CalendarListDeviceTemplate'
     
-    constructor: (@config, @framework) ->
+    constructor: (@config) ->
       @id = @config.id
-      @name = @config.name
-      @auth = @getAuth()
-      #events = @listEvents(@auth)
-      console.log events
-      #Run listEvents and then push events to frontend
+      @name = @config.name    
 
       super()
     
-    getAuth: ->      
-      plugin.pendingAuth.then( (authInfo) =>
-  		  env.logger.debug authInfo
-        @auth = authInfo
-        #return authInfo
+    getEvents: -> 
+      plugin.pendingAuth.then( (authInfo) ->
+        calendar = google.calendar('v3')
+        calendar.events.list {
+          auth: authInfo
+          calendarId: 'primary'
+          timeMin: (new Date).toISOString()
+          maxResults: 5
+          singleEvents: true
+          orderBy: 'startTime'
+        }, (err, response) ->
+          if err
+            env.logger.error 'The API returned an error: ' + err
+          else
+            events = response.items
+            Promise.resolve events # wohin wird übergeben
+          
+            ###
+            if events.length == 0
+              env.logger.debug 'No upcoming events found.'
+              Promise.resolve "No upcoming events"
+            else
+              env.logger.debug 'Upcoming 10 events:'
+              Promise.resolve "Upcoming 10 events: "
+              i = 0
+              while i < events.length
+                event = events[i]
+                start = event.start.dateTime or event.start.date
+                env.logger.debug start + " - " + event.summary
+                Promise.resolve start + " - " + event.summary
+                #console.log event
+                i++
+            ###
       ).catch ((err) ->
         env.logger.error err
-        #@auth = null
       )
 
-    listEvents: (auth) ->
-      calendar = google.calendar('v3')
-      calendar.events.list {
-        auth: auth
-        calendarId: 'primary'
-        timeMin: (new Date).toISOString()
-        maxResults: 10
-        singleEvents: true
-        orderBy: 'startTime'
-      }, (err, response) ->
-        if err
-          env.logger.error 'The API returned an error: ' + err
-  
-        #events = response.items 
-        return response.items
-        ###
-        if events.length == 0
-          env.logger.debug 'No upcoming events found.'
-        else
-          env.logger.debug 'Upcoming 10 events:'
-          i = 0
-          while i < events.length
-            event = events[i]
-            start = event.start.dateTime or event.start.date
-            env.logger.debug start + " - " + event.summary
-            #console.log event
-            i++
-        ###
-
-    getEvents: (events) -> Promise.resolve(events)
 
   #CalendarListDevice End
   return plugin

@@ -1,0 +1,35 @@
+label.event-list-label {
+	float: left;
+	width: 50%;
+	max-width: 50%;
+}
+ul.event-list {
+	float: right;
+	list-style-type: none;
+	position: relative;
+	max-width: 50%;
+	width: 50%;
+	padding: 0;
+	margin: 0;
+}
+ul.event-list li.event {
+	text-align: center;
+	width: 100%;
+	font-size: 12px;
+	margin: 5px 0;
+	padding: 5px 0;
+	background: #9FE1E7;
+}
+
+@media screen and (max-width:400px) {
+	label.event-list-label, 
+	ul.event-list {
+		float: none;
+	}
+	ul.event-list {
+		margin-top: 40px;
+		width: 100%;
+		max-width: 100%;
+	}
+}
+
