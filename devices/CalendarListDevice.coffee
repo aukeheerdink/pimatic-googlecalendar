@@ -1,22 +1,23 @@
 $(document).on( "templateinit", (event) ->
 
-	# define the item class
-	class CalendarListDeviceItem extends pimatic.DeviceItem
+  # define the item class
+  class CalendarListDeviceItem extends pimatic.DeviceItem
 
-		constructor: (data) ->
-			super(data)
+    constructor: (templData, @device) ->
+      super(templData, @device)
 
-			@attrValue = @getAttribute('events')
-			#echo @attrValue
+      @attrValue = @getAttribute('events').value
+      console.log(@attrValue())
+      #echo @attrValue
 
-			
-		afterRender: (elements) -> 
-			super(elements)
+      
+    afterRender: (elements) -> 
+      super(elements)
 
-			@list = $(elements).find('event-list')
+      @list = $(elements).find('event-list')
 
 
 
-	# register the item-class
-	pimatic.templateClasses['CalendarListDeviceTemplate'] = CalendarListDeviceItem
+  # register the item-class
+  pimatic.templateClasses['CalendarListDeviceTemplate'] = CalendarListDeviceItem
 )

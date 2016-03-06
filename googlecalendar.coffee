@@ -40,7 +40,7 @@ module.exports = (env) ->
         OAuth2 = google.auth.OAuth2
         oauth2Client = new OAuth2 clientId, clientSecret, redirectUrl
         # Check if we have previously stored a token.
-        fs.readFile __dirname + '/json/tokens.json', (erro, token) ->
+        ###        fs.readFile __dirname + '/json/tokens.json', (erro, token) ->
           if erro
             env.logger.debug "Creating a new Token Request because"
             env.logger.debug erro
@@ -68,10 +68,10 @@ module.exports = (env) ->
                     env.logger.info 'Token stored to ' + __dirname + '/json/tokens.json'
                     #env.logger.debug oauth2Client
                     resolve oauth2Client
-          else
-            oauth2Client.credentials = JSON.parse(token)
+          else###
+        oauth2Client.credentials = token
             #env.logger.debug oauth2Client
-            resolve oauth2Client
+        resolve oauth2Client
       );      
       
 
@@ -94,40 +94,21 @@ module.exports = (env) ->
       super()
     
     getEvents: -> 
-      plugin.pendingAuth.then( (authInfo) ->
-        calendar = google.calendar('v3')
-        calendar.events.list {
-          auth: authInfo
+      return plugin.pendingAuth.then( (authInfo) ->
+        calendar = google.calendar('v3', auth: authInfo)
+        unless calendar.events.listAsync?
+          Promise.promisifyAll(calendar.events)
+        return calendar.events.listAsync({
           calendarId: 'primary'
           timeMin: (new Date).toISOString()
           maxResults: 5
           singleEvents: true
           orderBy: 'startTime'
-        }, (err, response) ->
-          if err
-            env.logger.error 'The API returned an error: ' + err
-          else
-            events = response.items
-            Promise.resolve events # wohin wird übergeben
-          
-            ###
-            if events.length == 0
-              env.logger.debug 'No upcoming events found.'
-              Promise.resolve "No upcoming events"
-            else
-              env.logger.debug 'Upcoming 10 events:'
-              Promise.resolve "Upcoming 10 events: "
-              i = 0
-              while i < events.length
-                event = events[i]
-                start = event.start.dateTime or event.start.date
-                env.logger.debug start + " - " + event.summary
-                Promise.resolve start + " - " + event.summary
-                #console.log event
-                i++
-            ###
-      ).catch ((err) ->
-        env.logger.error err
+        }).then( (response) =>
+          events = response.items
+          @emit 'events', events
+          Promise.resolve events # wohin wird übergeben
+        )
       )
 
 
