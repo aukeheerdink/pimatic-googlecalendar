@@ -13,7 +13,7 @@ module.exports = (env) ->
   # GoogleCalendar class
   class GoogleCalendar extends env.plugins.Plugin
 
-  	init: (app, @framework, @config) =>
+    init: (app, @framework, @config) =>
       clientId     = @config.clientid
       clientSecret = @config.clientsecret
 
