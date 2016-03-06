@@ -6,8 +6,7 @@ pids
 .grunt
 node_modules
 json/*
-devices
-devices/*
 .js
 .js/
 .js/*
+.gitignore

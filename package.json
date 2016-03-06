@@ -5,9 +5,11 @@
   "files": [
     "googlecalendar.coffee",
     "README.md",
-    "googlecalendar-config-schema.coffee"
+    "googlecalendar-config-schema.coffee",
+	"device-config-schema.coffee",
+	"devices"
   ],
-  "version": "0.1.0",
+  "version": "0.0.3",
   "homepage": "http://github.com/thost96/pimatic-googlecalendar/",
   "private": true,
   "repository": {
